@@ -11,23 +11,24 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/deepstreamIO/deepstream.io-cache-and-storage-connector-template.git"
+    "url": "https://github.com/jphblais/deepstream.io-lowdb-storage-connector.git"
   },
   "author": "Jean-Philippe Blais",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/deepstreamIO/deepstream.io-cache-and-storage-connector-template/issues"
+    "url": "https://github.com/jphblais/deepstream.io-lowdb-storage-connector/issues"
   },
-  "homepage": "http://deepstream.io",
+  "homepage": "https://github.com/jphblais",
   "dependencies": {
     "lowdb": "^1.0.0"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "coveralls": "^2.11.9",
-    "eslint": "^2.11.1",
-    "eslint-config-airbnb": "^3.1.0",
-    "istanbul": "^0.4.3",
-    "mocha": "^2.5.2"
+    "chai": "^4.1.2",
+    "coveralls": "^2.13.1",
+    "eslint": "^4.6.1",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-config-airbnb-base": "^12.0.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.5.0"
   }
 }
