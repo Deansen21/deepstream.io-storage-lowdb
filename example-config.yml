@@ -1,5 +1,5 @@
 plugins:
   storage:
-    name: <name>
+    name: deepstream.io-lowdb-storage-connector
     options:
-      <KEY>: "${ENVIRONMENT_VARIABLE}"
+      dbfile: "/path/to/file.json"

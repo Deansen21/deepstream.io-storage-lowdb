@@ -1,7 +1,7 @@
 {
-  "name": "deepstream.io-cache-and-storage-connector-template",
-  "version": "1.0.1",
-  "description": "A template that can be forked to create new cache and storage connectors for deepstream.io",
+  "name": "deepstream.io-lowdb-storage-connector",
+  "version": "1.0.0",
+  "description": "A lowdb storage connectors for deepstream.io",
   "main": "src/connector.js",
   "scripts": {
     "test": "mocha",
@@ -13,13 +13,15 @@
     "type": "git",
     "url": "https://github.com/deepstreamIO/deepstream.io-cache-and-storage-connector-template.git"
   },
-  "author": "deepstreamHub GmbH",
+  "author": "Jean-Philippe Blais",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/deepstreamIO/deepstream.io-cache-and-storage-connector-template/issues"
   },
   "homepage": "http://deepstream.io",
-  "dependencies": {},
+  "dependencies": {
+    "lowdb": "^1.0.0"
+  },
   "devDependencies": {
     "chai": "^3.5.0",
     "coveralls": "^2.11.9",
