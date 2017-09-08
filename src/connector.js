@@ -1,12 +1,12 @@
 const low = require('lowdb');
-const FileAsync = require('lowdb/adapters/FileAsync');
+const FileSync = require('lowdb/adapters/FileSync');
 
-const events = require('events');
+const { EventEmitter } = require('events');
 const pckg = require('../package.json');
 
-class Connector extends events.EventEmitter {
-
-  /* @param {Object} options Any options the connector needs to connect to the db and to configure it.
+class Connector extends EventEmitter {
+  /* @param {Object} options Any options the connector needs to connect to the db and
+  * to configure it.
   *
   * @constructor
   */
@@ -15,15 +15,16 @@ class Connector extends events.EventEmitter {
     this.isReady = false;
     this.name = pckg.name;
     this.version = pckg.version;
+    if (!options.dbfile) {
+      throw new TypeError('options dbfile is required');
+    }
     this.dbfile = options.dbfile;
 
-    this.adapter = new FileAsync(this.dbfile);
+    this.adapter = new FileSync(this.dbfile);
     this.db = low(this.adapter);
-    this.db.read()
-      .then(() => {
-        this.isReady = true;
-        this.emit('ready');
-      });
+    this.db.read();
+    this.isReady = true;
+    process.nextTick(() => this.emit('ready'));
   }
 
   /**
@@ -31,24 +32,16 @@ class Connector extends events.EventEmitter {
    *
    * @param {String}   key
    * @param {Object}   value
-   * @param {Function} callback Should be called with null for successful set operations or with an error message string
+   * @param {Function} callback Should be called with null for successful set operations or with an
+   * error message string
    *
    * @private
    * @returns {void}
    */
   set(key, value, callback) {
     this.db.set(key, value)
-      .write()
-      .then(() => {
-        callback(null);
-      })
-      .catch((error) => {
-        if (error.message) {
-          callback(error.message);
-        } else {
-          callback(error);
-        }
-      });
+      .write();
+    callback(null);
   }
 
   /**
@@ -61,8 +54,12 @@ class Connector extends events.EventEmitter {
    * @returns {void}
    */
   get(key, callback) {
-    const value = this.db.get(key).value();
-    callback(null, value);
+    if (this.db.has(key)) {
+      const value = this.db.get(key).value();
+      callback(null, value === undefined ? null : value);
+    } else {
+      callback(null, null);
+    }
   }
 
   /**
@@ -76,17 +73,8 @@ class Connector extends events.EventEmitter {
    */
   delete(key, callback) {
     this.db.unset(key)
-      .write()
-      .then(() => {
-        callback(null);
-      })
-      .catch((error) => {
-        if (error.message) {
-          callback(error.message);
-        } else {
-          callback(error);
-        }
-      });
+      .write();
+    callback(null);
   }
 
   /**
