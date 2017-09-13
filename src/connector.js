@@ -69,8 +69,8 @@ class Connector extends EventEmitter {
   _write() {
     this.db.write();
     if (this.dbBackupFile) {
-      const unit = this.db.get('unit').value();
-      fs.writeFileSync(this.dbBackupFile, JSON.stringify({ unit }, null, 2));
+      const state = this.db.getState();
+      fs.writeFileSync(this.dbBackupFile, JSON.stringify(state, null, 2));
     }
   }
 
