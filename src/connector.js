@@ -1,5 +1,6 @@
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
+const fs = require('fs');
 
 const { EventEmitter } = require('events');
 const pckg = require('../package.json');
@@ -15,16 +16,28 @@ class Connector extends EventEmitter {
     this.isReady = false;
     this.name = pckg.name;
     this.version = pckg.version;
-    if (!options.dbfile) {
-      throw new TypeError('options dbfile is required');
+    if (!options.dbFile) {
+      throw new TypeError('options dbFile is required');
     }
-    this.dbfile = options.dbfile;
+    this.dbFile = options.dbFile;
 
-    this.adapter = new FileSync(this.dbfile);
+    if (options.dbBackupFile) {
+      this.dbBackupFile = options.dbBackupFile;
+    }
+
+    this.adapter = new FileSync(this.dbFile);
     this.db = low(this.adapter);
     this.db.read();
     this.isReady = true;
     process.nextTick(() => this.emit('ready'));
+  }
+
+  _write() {
+    this.db.write();
+    if (this.dbBackupFile) {
+      const unit = this.db.get('unit').value();
+      fs.writeFileSync(this.dbBackupFile, JSON.stringify({ unit }, null, 2));
+    }
   }
 
   /**
@@ -39,8 +52,8 @@ class Connector extends EventEmitter {
    * @returns {void}
    */
   set(key, value, callback) {
-    this.db.set(key, value)
-      .write();
+    this.db.set(key, value);
+    this._write();
     callback(null);
   }
 
@@ -72,8 +85,8 @@ class Connector extends EventEmitter {
    * @returns {void}
    */
   delete(key, callback) {
-    this.db.unset(key)
-      .write();
+    this.db.unset(key);
+    this._write();
     callback(null);
   }
 

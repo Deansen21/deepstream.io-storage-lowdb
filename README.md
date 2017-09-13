@@ -9,5 +9,6 @@ plugins:
   storage:
     name: deepstream.io-lowdb-storage-connector
     options:
-      dbfile: "/path/to/file.json"
+      dbFile: "/path/to/file.json"
+      dbBackupFile: "/path/to/backupFile.json"
 ```
