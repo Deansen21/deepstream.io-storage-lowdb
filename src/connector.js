@@ -23,10 +23,44 @@ class Connector extends EventEmitter {
 
     if (options.dbBackupFile) {
       this.dbBackupFile = options.dbBackupFile;
+      let dbFileStat;
+      let dbBackupFileStat;
+      try {
+        dbFileStat = fs.statSync(this.dbFile);
+        dbBackupFileStat = fs.statSync(this.dbBackupFile);
+      } catch (e) {
+        // Just nothing to do.
+      }
+      if (dbFileStat === undefined && dbBackupFileStat === undefined) {
+        // Both file does not exist... nothing can't be done.  FileSync will create it.
+      } else if (dbFileStat === undefined && dbBackupFileStat !== undefined) {
+        // dbFile does not exist, but we still have dbBackupFile, we will use the dbBackupFile
+        fs.copyFileSync(this.dbBackupFile, this.dbFile);
+      } else if (dbFileStat.size === 0 &&
+        dbBackupFileStat !== undefined && dbBackupFileStat.size > 0) {
+        // We've got truncated!  Replace the dbFile by the dbBackupFile.
+        fs.copyFileSync(this.dbBackupFile, this.dbFile);
+      }
     }
 
-    this.adapter = new FileSync(this.dbFile);
-    this.db = low(this.adapter);
+    let retry = 0;
+    let triedBackupFile = false;
+    do {
+      this.adapter = new FileSync(this.dbFile);
+      try {
+        this.db = low(this.adapter);
+        this.dbFileOk = true;
+      } catch (e) {
+        if (e instanceof SyntaxError) {
+          if (triedBackupFile === true) {
+            throw e;
+          }
+          fs.copyFileSync(this.dbBackupFile, this.dbFile);
+          triedBackupFile = true;
+          retry++;
+        }
+      }
+    } while (retry < 2);
     this.db.read();
     this.isReady = true;
     process.nextTick(() => this.emit('ready'));
