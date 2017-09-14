@@ -5,6 +5,10 @@ const fs = require('fs');
 const { EventEmitter } = require('events');
 const pckg = require('../package.json');
 
+function copyFileSync(src, dest) {
+  fs.writeFileSync(dest, fs.readFileSync(src));
+}
+
 class Connector extends EventEmitter {
   /* @param {Object} options Any options the connector needs to connect to the db and
   * to configure it.
@@ -35,32 +39,34 @@ class Connector extends EventEmitter {
         // Both file does not exist... nothing can't be done.  FileSync will create it.
       } else if (dbFileStat === undefined && dbBackupFileStat !== undefined) {
         // dbFile does not exist, but we still have dbBackupFile, we will use the dbBackupFile
-        fs.copyFileSync(this.dbBackupFile, this.dbFile);
+        copyFileSync(this.dbBackupFile, this.dbFile);
       } else if (dbFileStat.size === 0 &&
         dbBackupFileStat !== undefined && dbBackupFileStat.size > 0) {
         // We've got truncated!  Replace the dbFile by the dbBackupFile.
-        fs.copyFileSync(this.dbBackupFile, this.dbFile);
+        copyFileSync(this.dbBackupFile, this.dbFile);
       }
     }
 
-    let retry = 0;
+    let trials = 0;
     let triedBackupFile = false;
-    do {
+    while (trials < 2) {
       this.adapter = new FileSync(this.dbFile);
       try {
         this.db = low(this.adapter);
-        this.dbFileOk = true;
+        break;
       } catch (e) {
+        trials++;
         if (e instanceof SyntaxError) {
           if (triedBackupFile === true) {
             throw e;
           }
-          fs.copyFileSync(this.dbBackupFile, this.dbFile);
+          copyFileSync(this.dbBackupFile, this.dbFile);
           triedBackupFile = true;
-          retry++;
+        } else {
+          throw e;
         }
       }
-    } while (retry < 2);
+    }
     this.db.read();
     this.isReady = true;
     process.nextTick(() => this.emit('ready'));
