@@ -92,7 +92,8 @@ class Connector extends EventEmitter {
    * @returns {void}
    */
   set(key, value, callback) {
-    this.db.set(key, value);
+    this.db.set(key, value)
+      .value();
     this._write();
     callback(null);
   }
